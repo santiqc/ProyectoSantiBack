@@ -1,6 +1,7 @@
 package com.proyecto.santi.security.controller;
 
 
+import com.nimbusds.jose.shaded.json.parser.ParseException;
 import com.proyecto.santi.dto.Mensaje;
 import com.proyecto.santi.security.dto.JwtDto;
 import com.proyecto.santi.security.dto.LoginUsuario;
@@ -76,5 +77,12 @@ public class AuthController {
         String jwt = jwtProvider.generateToken(authentication);
         JwtDto jwtDto = new JwtDto(jwt);
         return new ResponseEntity(jwtDto, HttpStatus.OK);
+    }
+    
+    @PostMapping("/refresh")
+    public ResponseEntity<JwtDto> refresh(@RequestBody JwtDto jwtDto) throws java.text.ParseException{
+    	String token =jwtProvider.refreshToken(jwtDto);
+    	JwtDto jwt = new JwtDto(token); 
+		return new ResponseEntity(jwt, HttpStatus.OK);
     }
 }
