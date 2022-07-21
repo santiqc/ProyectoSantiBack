@@ -1,6 +1,7 @@
 package com.proyecto.santi.security.controller;
 
 
+import com.nimbusds.jose.shaded.json.parser.ParseException;
 import com.proyecto.santi.dto.Mensaje;
 import com.proyecto.santi.security.dto.JwtDto;
 import com.proyecto.santi.security.dto.LoginUsuario;
@@ -18,7 +19,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -75,8 +75,14 @@ public class AuthController {
                 authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginUsuario.getNombreUsuario(), loginUsuario.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtProvider.generateToken(authentication);
-        UserDetails userDetails = (UserDetails)authentication.getPrincipal();
-        JwtDto jwtDto = new JwtDto(jwt, userDetails.getUsername(), userDetails.getAuthorities());
+        JwtDto jwtDto = new JwtDto(jwt);
         return new ResponseEntity(jwtDto, HttpStatus.OK);
+    }
+    
+    @PostMapping("/refresh")
+    public ResponseEntity<JwtDto> refresh(@RequestBody JwtDto jwtDto) throws java.text.ParseException{
+    	String token =jwtProvider.refreshToken(jwtDto);
+    	JwtDto jwt = new JwtDto(token); 
+		return new ResponseEntity(jwt, HttpStatus.OK);
     }
 }
