@@ -22,6 +22,9 @@ import com.proyecto.santi.dto.ProductoDto;
 import com.proyecto.santi.entity.Producto;
 import com.proyecto.santi.service.ProductoService;
 
+import io.swagger.annotations.ApiOperation;
+import springfox.documentation.annotations.ApiIgnore;
+
 
 
 
@@ -31,13 +34,14 @@ import com.proyecto.santi.service.ProductoService;
 public class ProductoController {
 	 @Autowired
 	    ProductoService productoService;
-
+	 
+	 	@ApiOperation("muestra una lista de productos")
 	    @GetMapping("/lista")
 	    public ResponseEntity<List<Producto>> list(){
 	        List<Producto> list = productoService.list();
 	        return new ResponseEntity(list, HttpStatus.OK);
 	    }
-
+	 	@ApiIgnore
 	    @GetMapping("/detail/{id}")
 	    public ResponseEntity<Producto> getById(@PathVariable("id") int id){
 	        if(!productoService.existsById(id))
@@ -45,7 +49,7 @@ public class ProductoController {
 	        Producto producto = productoService.getOne(id).get();
 	        return new ResponseEntity(producto, HttpStatus.OK);
 	    }
-
+	 	@ApiIgnore 
 	    @GetMapping("/detailname/{nombre}")
 	    public ResponseEntity<Producto> getByNombre(@PathVariable("nombre") String nombre){
 	        if(!productoService.existsByNombre(nombre))
