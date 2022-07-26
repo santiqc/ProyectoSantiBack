@@ -25,6 +25,7 @@ import com.proyecto.santi.emailpassword.dto.ChangePasswordDTO;
 import com.proyecto.santi.emailpassword.service.EmailService;
 import com.proyecto.santi.security.entity.Usuario;
 import com.proyecto.santi.security.service.UsuarioService;
+
 @RestController
 @RequestMapping("/email-password")
 @CrossOrigin
@@ -32,37 +33,37 @@ public class EmailController {
 
     @Autowired
     EmailService emailService;
-    
+
     @Autowired
     UsuarioService usuarioService;
-    
+
     @Autowired
     PasswordEncoder passwordEncoder;
-    
+
     @Value("${spring.mail.username}")
     private String mailFrom;
-    
-    private static final String mailSubject = "Cambio de Contraseña";
+
+    private static final String subject = "Cambio de Contraseña";
 
     @PostMapping("/send-email")
     public ResponseEntity<?> sendEmailTemplate(@RequestBody EmailValuesDTO dto) {
-    	Optional<Usuario> usuarioOpt= usuarioService.getByNombreUsuarioOrEmail(dto.getMailTo());
-    	if (!usuarioOpt.isPresent()) {
-    		return new ResponseEntity(new Mensaje("No existe ningun usuario con esas credenciales"), HttpStatus.NOT_FOUND);			
-		}
-    	Usuario usuario= usuarioOpt.get();
-    	dto.setMailFrom(mailFrom);
-    	dto.setMailTo(usuario.getEmail());
-    	dto.setSubject(mailSubject);
-    	dto.setUserName(usuario.getNombreUsuario());
-    	UUID uuid= UUID.randomUUID();
-    	String tokenPassword= uuid.toString();
-    	dto.setTokenPassword(tokenPassword);
-    	usuarioService.save(usuario);
+        Optional<Usuario> usuarioOpt = usuarioService.getByNombreUsuarioOrEmail(dto.getMailTo());
+        if(!usuarioOpt.isPresent())
+            return new ResponseEntity(new Mensaje("No existe ningún usuario con esas credenciales"), HttpStatus.NOT_FOUND);
+        Usuario usuario = usuarioOpt.get();
+        dto.setMailFrom(mailFrom);
+        dto.setMailTo(usuario.getEmail());
+        dto.setSubject(subject);
+        dto.setUserName(usuario.getNombreUsuario());
+        UUID uuid = UUID.randomUUID();
+        String tokenPassword = uuid.toString();
+        dto.setTokenPassword(tokenPassword);
+        usuario.setTokenPassword(tokenPassword);
+        usuarioService.save(usuario);
         emailService.sendEmail(dto);
         return new ResponseEntity(new Mensaje("Te hemos enviado un correo"), HttpStatus.OK);
     }
-    
+
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordDTO dto, BindingResult bindingResult) {
         if(bindingResult.hasErrors())
@@ -79,4 +80,5 @@ public class EmailController {
         usuarioService.save(usuario);
         return new ResponseEntity(new Mensaje("Contraseña actualizada"), HttpStatus.OK);
     }
+
 }
