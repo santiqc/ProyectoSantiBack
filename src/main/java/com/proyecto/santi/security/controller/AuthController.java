@@ -12,9 +12,13 @@ import com.proyecto.santi.security.enums.RolNombre;
 import com.proyecto.santi.security.jwt.JwtProvider;
 import com.proyecto.santi.security.service.RolService;
 import com.proyecto.santi.security.service.UsuarioService;
+
+import io.swagger.annotations.ApiOperation;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -85,4 +90,71 @@ public class AuthController {
     	JwtDto jwt = new JwtDto(token); 
 		return new ResponseEntity(jwt, HttpStatus.OK);
     }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @ApiOperation("Muestra la lista de usuarios")
+    @GetMapping("/usuarios")
+    public ResponseEntity<List<Usuario>> list(){
+    	List<Usuario> list = usuarioService.list();
+    	return new ResponseEntity(list, HttpStatus.OK);
+    }
+    
+    @ApiOperation("Elimina un usuario registrado")
+    @DeleteMapping("/usuarios/{id}")
+    public ResponseEntity<?> delete(@PathVariable("id") int id){
+    	if (!usuarioService.existsById(id)) {
+    		return new ResponseEntity(new Mensaje("Usuario no existe"), HttpStatus.NOT_FOUND);
+    		}
+		usuarioService.delete(id);
+		return new ResponseEntity(new Mensaje("Usuario eliminado con exito!"), HttpStatus.OK);
+    }
+    
+    
+  
+    @ApiOperation("Muestra usuario por id")
+    @GetMapping("/usuarios/{id}")
+    public ResponseEntity<?> getById(@PathVariable int id){
+    	if (!usuarioService.existsById(id)) {
+    		return new ResponseEntity(new Mensaje("Usuario no existe"), HttpStatus.NOT_FOUND);
+    		}
+    	Usuario usuario = usuarioService.getOne(id).get();
+    	return new ResponseEntity(usuario, HttpStatus.OK);
+    }
+    
+  
+    @ApiOperation("Muestra usuario por nombre de usuario")
+    @GetMapping("/usuarioname/{nombreUsuario}")
+    public ResponseEntity<?> getByNombre(@PathVariable String nombreUsuario){
+    	if (!usuarioService.existsByNombreUsuario(nombreUsuario)) {
+    		return new ResponseEntity(new Mensaje("Usuario no existe"), HttpStatus.NOT_FOUND);
+    		}
+    	Usuario usuario = usuarioService.getByNombreUsuarioOrEmail(nombreUsuario).get();
+    	return new ResponseEntity(usuario, HttpStatus.OK);
+    }
+    
+    @ApiOperation("Usuario puede ser editado")
+    @PutMapping("/usuarios/{id}")
+    public ResponseEntity<?> update(@Valid @PathVariable int id, @RequestBody NuevoUsuario nuevoUsuario, BindingResult bindingResult){
+        if(bindingResult.hasErrors())
+            return new ResponseEntity(new Mensaje("campos mal puestos o email inválido"), HttpStatus.BAD_REQUEST);
+        if (!usuarioService.existsById(id)) {
+        	 return new ResponseEntity(new Mensaje("no existe"), HttpStatus.NOT_FOUND);
+		}
+        if (usuarioService.existsByNombreUsuario(nuevoUsuario.getNombreUsuario()) && usuarioService.getByNombreUsuario(nuevoUsuario.getNombreUsuario()).get().getId() != id) {
+        	return new ResponseEntity(new Mensaje("Ese nombre de usuario ya existe"), HttpStatus.BAD_REQUEST);
+			
+		}
+        if (usuarioService.existsByEmail(nuevoUsuario.getEmail()) && usuarioService.getByNombreUsuarioOrEmail(nuevoUsuario.getEmail()).get().getId() != id) {
+        	return new ResponseEntity(new Mensaje("Ese email de usuario ya existe"), HttpStatus.BAD_REQUEST);
+		}
+
+        Usuario usuario = usuarioService.getOne(id).get();
+        usuario.setNombre(nuevoUsuario.getNombre());
+        usuario.setNombreUsuario(nuevoUsuario.getNombreUsuario());
+        usuario.setEmail(nuevoUsuario.getEmail());
+        usuarioService.save(usuario);
+        return new ResponseEntity(new Mensaje("usuario actualizado"), HttpStatus.OK);
+    }
+    
+    
 }

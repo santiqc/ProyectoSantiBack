@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.proyecto.santi.security.entity.Usuario;
 import com.proyecto.santi.security.repository.UsuarioRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,6 +26,9 @@ public class UsuarioService {
     public Optional<Usuario> getByTokenPassword(String tokenPassword){
         return usuarioRepository.findByTokenPassword(tokenPassword);
     }
+    public Optional<Usuario> getOne(int id){
+    	return usuarioRepository.findById(id);
+    }
 
     public boolean existsByNombreUsuario(String nombreUsuario){
         return usuarioRepository.existsByNombreUsuario(nombreUsuario);
@@ -33,8 +37,23 @@ public class UsuarioService {
     public boolean existsByEmail(String email){
         return usuarioRepository.existsByEmail(email);
     }
-
+    
+    public boolean existsById(int id) {
+    	return usuarioRepository.existsById(id);
+    }
+    
     public void save(Usuario usuario){
         usuarioRepository.save(usuario);
     }
+    
+    public List<Usuario> list(){
+    	return usuarioRepository.findAll();
+    }
+    
+    public void delete(int id) {
+    	usuarioRepository.deleteById(id);
+    }
+    
+    
+    
 }
