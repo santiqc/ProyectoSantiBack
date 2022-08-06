@@ -79,6 +79,6 @@ public class EmailController {
         usuario.setTokenPassword(null);
         usuarioService.save(usuario);
         return new ResponseEntity(new Mensaje("Contraseña actualizada"), HttpStatus.OK);
-    }
-
+    
+}
 }
